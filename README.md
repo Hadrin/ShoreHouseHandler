@@ -1,2 +1,2 @@
 # ShoreHouseHandler
- Program to handle scheduling for shore-house rentals
+ Program to handle scheduling for a shore-house
