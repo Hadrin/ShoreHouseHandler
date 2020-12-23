@@ -1,18 +1,25 @@
+import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
 
 import javax.swing.*;
+
+import com.google.api.services.calendar.model.Event;
 public class windowManager implements ActionListener {
 	private int m = 0;
 	private int year = 0;
+	private apiHandler api;
 	
 	public windowManager(String type){
 		try {
-			apiHandler api = new apiHandler();
+			api = new apiHandler();
 		} catch(Exception e) {
 			System.out.println(e.getMessage());
 		}
@@ -101,6 +108,7 @@ public class windowManager implements ActionListener {
 		int[] daysInMonth = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 		String[] nameOfMonth = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"};
 		
+		
 		cal.set(Calendar.DAY_OF_MONTH, 1);
 		int startPoint = cal.get(Calendar.DAY_OF_WEEK);
 		startPoint--;
@@ -113,6 +121,31 @@ public class windowManager implements ActionListener {
 			} else {
 				pointer++;
 				calendarDay[i].setText(Integer.toString(pointer));
+			}
+		}
+		
+		List<Event> eventList = api.getEvents();
+		for(int i = 1; i <= daysInMonth[m]; i++) {
+			final Integer innerI = new Integer(i);
+			if(!(eventList.isEmpty())) {
+				eventList.forEach(e -> {
+					int startMonth, endMonth, startDay, endDay;
+					startMonth = api.convertMonthFromEpoch(e.getStart().getDateTime().getValue());
+					endMonth = api.convertMonthFromEpoch(e.getEnd().getDateTime().getValue());
+					startDay = api.convertDayFromEpoch(e.getStart().getDateTime().getValue());
+					endDay = api.convertDayFromEpoch(e.getEnd().getDateTime().getValue());
+					System.out.println(startMonth + "/" + startDay + "-" + endMonth + "/" + endDay + "   " + m + "/" + innerI); //TODO remove testing code
+					if((startMonth <= m) && (endMonth >= m) && (startDay <= innerI) && (endDay >= innerI)) {
+						for(int j = 0; j < calendarDay.length; j++) {
+							if(calendarDay[j].isEnabled()) {
+								if(Integer.parseInt(calendarDay[j].getText()) == innerI) {
+									calendarDay[j].setBackground(Color.blue);
+									calendarDay[j].setForeground(Color.white);
+								}
+							}
+						}
+					}
+				});
 			}
 		}
 		

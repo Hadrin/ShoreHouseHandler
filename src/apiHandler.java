@@ -24,6 +24,7 @@ import com.google.auth.oauth2.GoogleCredentials;
 public class apiHandler {
 	private static final JsonFactory jsf = new JacksonFactory().getDefaultInstance();
 	private static final String targetedCalendar = "f8jv1pqoabmh4td3hgasu4q9ko@group.calendar.google.com";
+	private static Calendar calendar;
 	
 	public apiHandler() throws IOException{
 		//Authentification
@@ -48,18 +49,18 @@ public class apiHandler {
 		//Takes scoped credentials and prepares to authenticate to google API
 		HttpRequestInitializer requestInitializer = new HttpCredentialsAdapter(credentials);
 		//Authenticates and creates calendar object to interact with google API
-		Calendar calendar = new Calendar.Builder(http, jsf, requestInitializer).build();
+		calendar = new Calendar.Builder(http, jsf, requestInitializer).build();
 	}
 	
 	/**
 	 * Creates an event in the calendar specified by define targetedCalendar
 	 * @param calendar Calendar object used to interact with API
-	 * @param startDate date of event start in format YYYY-MM-DD
-	 * @param endDate date of event end in format YYYY-MM-DD
+	 * @param startDate date of event start in format YYYY MM DD
+	 * @param endDate date of event end in format YYYY MM DD
 	 * @param title Name of event to be created
 	 * @return boolean - returns whether the event was created successfully or not
 	 */
-	public boolean createEvent(Calendar calendar, String startDate, String endDate, String title) {
+	public boolean createEvent(String startDate, String endDate, String title) {
 		try {
 			Event event = new Event();
 			long startDateEpoch, endDateEpoch;
@@ -78,13 +79,13 @@ public class apiHandler {
 	/**
 	 * Creates an event in the calendar specified by define targetedCalendar
 	 * @param calendar Calendar object used to interact with API
-	 * @param startDate date of event start in format YYYYMMDD
-	 * @param endDate date of event end in format YYYYMMDD
+	 * @param startDate date of event start in format YYYY MM DD
+	 * @param endDate date of event end in format YYYY MM DD
 	 * @param title Name of event to be created
 	 * @param description description of event
 	 * @return boolean - returns whether the event was created successfully or not
 	 */
-	public static boolean createEvent(Calendar calendar, String startDate, String endDate, String title, String description) {
+	public boolean createEvent(String startDate, String endDate, String title, String description) {
 		try {
 			Event event = new Event();
 			long startDateEpoch, endDateEpoch;
@@ -104,10 +105,9 @@ public class apiHandler {
 	
 	/**
 	 * Gets a list of all events on the selected calendar regardless of date. 
-	 * @param calendar calendar object used to interact with API
 	 * @return a list of events from given calendar
 	 */
-	public static List<Event> getEvents(Calendar calendar) {
+	public List<Event> getEvents() {
 		try {
 			Events events = calendar.events().list(targetedCalendar).execute();
 			List<Event> eventList = events.getItems();
@@ -120,12 +120,11 @@ public class apiHandler {
 	
 	/**
 	 * Gets a list of all events on the selected calendar that interact with the given month
-	 * @param calendar calendar object used to interact with API
 	 * @param month month to be checked
 	 * @param year year to be checked
 	 * @return a list of events from given calendar
 	 */
-	public static List<Event> getEvents(Calendar calendar, int month, int year) {
+	public List<Event> getEvents(int month, int year) {
 		try {
 			Date date = new Date();
 			Events events = calendar.events().list(targetedCalendar).execute();
@@ -148,6 +147,7 @@ public class apiHandler {
 					li.remove();
 				}
 			}
+			System.out.println(eventList);
 			return eventList;
 		}catch(Exception e) {
 			System.out.println("Failed to get events from calendar");
@@ -183,5 +183,29 @@ public class apiHandler {
 		Date date = dateFormat.parse(endDateVal);
 		epoch = date.getTime();
 		return epoch;
+	}
+	
+	public long convertIntoEpochTime(String date) throws ParseException{
+		long epoch;
+		String dateVal = date.concat(" 12:00:00");
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy LL dd HH:mm:ss");
+		Date newDate = dateFormat.parse(dateVal);
+		epoch = newDate.getTime();
+		return epoch;
+	}
+	
+	public int convertMonthFromEpoch(long epoch){
+		Date date = new Date(epoch);
+		return date.getMonth();
+	}
+	
+	public int convertYearFromEpoch(long epoch){
+		Date date = new Date(epoch);
+		return date.getYear();
+	}
+	
+	public int convertDayFromEpoch(long epoch){
+		Date date = new Date(epoch);
+		return date.getDate();
 	}
 }
